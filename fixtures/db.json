@@ -1,27 +1,33 @@
 {
   "usuarios": [
     {
-      "id": 1,
+      "id": "1",
       "nome": "João Silva",
       "email": "joao.silva@example.com",
       "senha": "senha123"
     },
     {
-      "id": 2,
+      "id": "2",
       "nome": "Maria Oliveira",
       "email": "maria.oliveira@example.com",
       "senha": "senha456"
     },
     {
-      "id": 3,
+      "id": "3",
       "nome": "Carlos Pereira",
       "email": "carlos.pereira@example.com",
       "senha": "senha789"
+    },
+    {
+      "id": "6635",
+      "nome": "Arthurteste",
+      "email": "Arthurmendescouto16@gmail.com",
+      "senha": "123456"
     }
   ],
   "vagas": [
     {
-      "id": 1,
+      "id": "1",
       "titulo": "Desenvolvedor Front-end",
       "descricao": "Desenvolvimento de interfaces web utilizando React.",
       "dataCadastro": "2024-06-30",
@@ -30,7 +36,7 @@
       "empresa": "Tech Solutions"
     },
     {
-      "id": 2,
+      "id": "2",
       "titulo": "Desenvolvedor Back-end",
       "descricao": "Desenvolvimento de APIs RESTful utilizando Node.js.",
       "dataCadastro": "2024-06-28",
@@ -39,7 +45,7 @@
       "empresa": "Innovative Tech"
     },
     {
-      "id": 3,
+      "id": "3",
       "titulo": "Analista de Sistemas",
       "descricao": "Análise e levantamento de requisitos de sistemas.",
       "dataCadastro": "2024-06-25",
@@ -48,7 +54,7 @@
       "empresa": "System Analysts Inc."
     },
     {
-      "id": 4,
+      "id": "4",
       "titulo": "Engenheiro de Software",
       "descricao": "Desenvolvimento de software em diversas linguagens.",
       "dataCadastro": "2024-06-20",
@@ -57,7 +63,7 @@
       "empresa": "Global Software Solutions"
     },
     {
-      "id": 5,
+      "id": "5",
       "titulo": "Suporte Técnico",
       "descricao": "Atendimento e suporte a clientes.",
       "dataCadastro": "2024-06-15",
@@ -66,7 +72,7 @@
       "empresa": "Customer Support Ltd."
     },
     {
-      "id": 6,
+      "id": "6",
       "titulo": "Gerente de Projetos",
       "descricao": "Gestão e coordenação de projetos de TI.",
       "dataCadastro": "2024-06-10",
@@ -75,7 +81,7 @@
       "empresa": "Project Managers Corp."
     },
     {
-      "id": 7,
+      "id": "7",
       "titulo": "Designer UX/UI",
       "descricao": "Criação de interfaces e experiências de usuário.",
       "dataCadastro": "2024-06-05",
@@ -84,7 +90,7 @@
       "empresa": "Creative Designs"
     },
     {
-      "id": 8,
+      "id": "8",
       "titulo": "Analista de Dados",
       "descricao": "Análise e interpretação de dados empresariais.",
       "dataCadastro": "2024-06-01",
