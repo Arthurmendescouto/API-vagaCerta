@@ -1,20 +1,23 @@
 #!/usr/bin/env node
-import { existsSync, readFileSync, writeFileSync } from 'node:fs'
-import { extname } from 'node:path'
-import { parseArgs } from 'node:util'
 
-import chalk from 'chalk'
-import { watch } from 'chokidar'
-import JSON5 from 'json5'
-import { Adapter, Low } from 'lowdb'
-import { DataFile, JSONFile } from 'lowdb/node'
-import { PackageJson } from 'type-fest'
+// Importações de módulos nativos e de terceiros
+import { existsSync, readFileSync, writeFileSync } from 'node:fs' // Manipulação de arquivos
+import { extname } from 'node:path' // Extensão de arquivos
+import { parseArgs } from 'node:util' // Parsing de argumentos da linha de comando
 
-import { fileURLToPath } from 'node:url'
-import { createApp } from './app.js'
-import { Observer } from './observer.js'
-import { Data } from './service.js'
+import chalk from 'chalk' // Formatação de texto no terminal
+import { watch } from 'chokidar' // Observador de mudanças em arquivos
+import JSON5 from 'json5' // Suporte para arquivos JSON5
+import { Adapter, Low } from 'lowdb' // Banco de dados leve
+import { DataFile, JSONFile } from 'lowdb/node' // Adaptadores para lowdb
+import { PackageJson } from 'type-fest' // Tipagem para arquivos package.json
 
+import { fileURLToPath } from 'node:url' // Manipulação de URLs
+import { createApp } from './app.js' // Função para criar a aplicação
+import { Observer } from './observer.js' // Observador para o banco de dados
+import { Data } from './service.js' // Tipos e funcionalidades relacionadas ao banco
+
+// Função para exibir ajuda ao usuário
 function help() {
   console.log(`Usage: json-server [options] <file>
 
@@ -27,79 +30,41 @@ Options:
 `)
 }
 
-// Parse args
-function args(): {
-  file: string
-  port: number
-  host: string
-  static: string[]
-} {
+// Processa e valida os argumentos passados na linha de comando
+function args() {
   try {
     const { values, positionals } = parseArgs({
       options: {
-        port: {
-          type: 'string',
-          short: 'p',
-          default: process.env['PORT'] ?? '3000',
-        },
-        host: {
-          type: 'string',
-          short: 'h',
-          default: process.env['HOST'] ?? 'localhost',
-        },
-        static: {
-          type: 'string',
-          short: 's',
-          multiple: true,
-          default: [],
-        },
-        help: {
-          type: 'boolean',
-        },
-        version: {
-          type: 'boolean',
-        },
-        // Deprecated
-        watch: {
-          type: 'boolean',
-          short: 'w',
-        },
+        port: { type: 'string', short: 'p', default: process.env['PORT'] ?? '3000' },
+        host: { type: 'string', short: 'h', default: process.env['HOST'] ?? 'localhost' },
+        static: { type: 'string', short: 's', multiple: true, default: [] },
+        help: { type: 'boolean' },
+        version: { type: 'boolean' },
+        watch: { type: 'boolean', short: 'w' }, // Opção obsoleta
       },
       allowPositionals: true,
     })
 
-    // --version
+    // Exibe a versão e encerra
     if (values.version) {
       const pkg = JSON.parse(
-        readFileSync(
-          fileURLToPath(new URL('../package.json', import.meta.url)),
-          'utf-8',
-        ),
+        readFileSync(fileURLToPath(new URL('../package.json', import.meta.url)), 'utf-8'),
       ) as PackageJson
       console.log(pkg.version)
       process.exit()
     }
 
-    // Handle --watch
-    if (values.watch) {
-      console.log(
-        chalk.yellow(
-          '--watch/-w can be omitted, JSON Server 1+ watches for file changes by default',
-        ),
-      )
-    }
-
+    // Exibe ajuda e encerra
     if (values.help || positionals.length === 0) {
       help()
       process.exit()
     }
 
-    // App args and options
     return {
       file: positionals[0] ?? '',
-      port: parseInt(values.port as string),
-      host: values.host as string,
-      static: values.static as string[],
+      port: parseInt(values.port),
+      host: values.host,
+      static: values.static,
     }
   } catch (e) {
     if ((e as NodeJS.ErrnoException).code === 'ERR_PARSE_ARGS_UNKNOWN_OPTION') {
@@ -112,60 +77,58 @@ function args(): {
   }
 }
 
+// Obtém os argumentos
 const { file, port, host, static: staticArr } = args()
 
+// Verifica se o arquivo especificado existe
 if (!existsSync(file)) {
   console.log(chalk.red(`File ${file} not found`))
   process.exit(1)
 }
 
-// Handle empty string JSON file
+// Cria um arquivo vazio se o JSON especificado estiver vazio
 if (readFileSync(file, 'utf-8').trim() === '') {
   writeFileSync(file, '{}')
 }
 
-// Set up database
+// Configuração do banco de dados
 let adapter: Adapter<Data>
 if (extname(file) === '.json5') {
-  adapter = new DataFile<Data>(file, {
-    parse: JSON5.parse,
-    stringify: JSON5.stringify,
-  })
+  adapter = new DataFile<Data>(file, { parse: JSON5.parse, stringify: JSON5.stringify }) // Suporte para JSON5
 } else {
-  adapter = new JSONFile<Data>(file)
+  adapter = new JSONFile<Data>(file) // Suporte para JSON padrão
 }
-const observer = new Observer(adapter)
+const observer = new Observer(adapter) // Observador para mudanças no banco de dados
+const db = new Low<Data>(observer, {}) // Instância do banco de dados
+await db.read() // Carrega os dados do arquivo
 
-const db = new Low<Data>(observer, {})
-await db.read()
-
-// Create app
+// Cria o servidor usando os dados carregados
 const app = createApp(db, { logger: false, static: staticArr })
 
+// Exibe as rotas disponíveis no terminal
 function logRoutes(data: Data) {
   console.log(chalk.bold('Endpoints:'))
   if (Object.keys(data).length === 0) {
-    console.log(
-      chalk.gray(`No endpoints found, try adding some data to ${file}`),
-    )
+    console.log(chalk.gray(`No endpoints found, try adding some data to ${file}`))
     return
   }
   console.log(
     Object.keys(data)
-      .map(
-        (key) => `${chalk.gray(`http://${host}:${port}/`)}${chalk.blue(key)}`,
-      )
+      .map((key) => `${chalk.gray(`http://${host}:${port}/`)}${chalk.blue(key)}`)
       .join('\n'),
   )
 }
 
+// Lista de kaomojis para personalizar a saída do terminal
 const kaomojis = ['♡⸜(˶˃ ᵕ ˂˶)⸝♡', '♡( ◡‿◡ )', '( ˶ˆ ᗜ ˆ˵ )', '(˶ᵔ ᵕ ᵔ˶)']
 
+// Retorna um item aleatório de uma lista
 function randomItem(items: string[]): string {
   const index = Math.floor(Math.random() * items.length)
   return items.at(index) ?? ''
 }
 
+// Inicializa o servidor na porta especificada
 app.listen(port, () => {
   console.log(
     [
@@ -173,7 +136,7 @@ app.listen(port, () => {
       chalk.gray('Press CTRL-C to stop'),
       chalk.gray(`Watching ${file}...`),
       '',
-      chalk.magenta(randomItem(kaomojis)),
+      chalk.magenta(randomItem(kaomojis)), // Adiciona um kaomoji à saída
       '',
       chalk.bold('Index:'),
       chalk.gray(`http://localhost:${port}/`),
@@ -186,11 +149,12 @@ app.listen(port, () => {
   logRoutes(db.data)
 })
 
-// Watch file for changes
+// Observa mudanças no arquivo JSON em ambientes de desenvolvimento
 if (process.env['NODE_ENV'] !== 'production') {
-  let writing = false // true if the file is being written to by the app
-  let prevEndpoints = ''
+  let writing = false // Indica se o arquivo está sendo escrito pelo servidor
+  let prevEndpoints = '' // Lista de endpoints antes de mudanças
 
+  // Define os eventos de escrita/leitura do banco
   observer.onWriteStart = () => {
     writing = true
   }
@@ -201,24 +165,20 @@ if (process.env['NODE_ENV'] !== 'production') {
     prevEndpoints = JSON.stringify(Object.keys(db.data).sort())
   }
   observer.onReadEnd = (data) => {
-    if (data === null) {
-      return
-    }
-
+    if (data === null) return
     const nextEndpoints = JSON.stringify(Object.keys(data).sort())
     if (prevEndpoints !== nextEndpoints) {
       console.log()
       logRoutes(data)
     }
   }
+
+  // Observa mudanças no arquivo
   watch(file).on('change', () => {
-    // Do no reload if the file is being written to by the app
     if (!writing) {
       db.read().catch((e) => {
         if (e instanceof SyntaxError) {
-          return console.log(
-            chalk.red(['', `Error parsing ${file}`, e.message].join('\n')),
-          )
+          return console.log(chalk.red(['', `Error parsing ${file}`, e.message].join('\n')))
         }
         console.log(e)
       })
