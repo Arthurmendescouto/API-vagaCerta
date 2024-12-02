@@ -79,7 +79,7 @@ Antes de utilizar a API, certifique-se de ter instalado:
 
 Se você tiver dúvidas ou encontrar problemas, sinta-se à vontade para entrar em contato:
 
-- **E-mail**: [contato@seuprojeto.com](mailto:contato@seuprojeto.com)
+- **E-mail**: [arthurmendescouto16@gmail.com](arthurmendescouto16@gmail.com)
 
 ---
 
