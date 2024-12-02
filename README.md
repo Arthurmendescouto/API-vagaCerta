@@ -37,7 +37,6 @@ A API do **Vaga Certa** é uma aplicação simples baseada em JSON Server que pe
 Antes de utilizar a API, certifique-se de ter instalado:
 
 - [Node.js](https://nodejs.org/) (versão recomendada: 16.x ou superior)
-- [JSON Server](https://github.com/typicode/json-server)
 
 ---
 
