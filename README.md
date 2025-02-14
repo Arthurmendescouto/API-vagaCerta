@@ -1,6 +1,6 @@
 # **API Vaga Certa**
 
-Este repositório contém a API utilizada pelo front-end do **Vaga Certa**. A API é responsável por gerenciar dados como e-mail e senha para realização de login, bem como receber e atualizar informações de novos usuários adicionados pelo front-end.
+Este repositório contém a API simulada que é utilizada pelo front-end do **Vaga Certa**. A API é responsável por gerenciar dados como e-mail e senha para realização de login, bem como receber e atualizar informações de novos usuários adicionados pelo front-end.
 
 ---
 
